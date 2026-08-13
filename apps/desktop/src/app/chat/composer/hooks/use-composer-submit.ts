@@ -6,6 +6,7 @@ import { hasClarifyRequest, skipClarifyRequest } from '@/store/clarify'
 import { clearSessionDraft, type ComposerAttachment } from '@/store/composer'
 import { resetBrowseState } from '@/store/composer-input-history'
 import { enqueueQueuedPrompt, type QueuedPromptEntry } from '@/store/composer-queue'
+import { hasMcpSetupRequest, skipMcpSetupRequest } from '@/store/mcp-setup'
 
 import { cloneAttachments, type QueueEditState } from '../composer-utils'
 import { onComposerSubmitRequest } from '../focus'
@@ -159,6 +160,12 @@ export function useComposerSubmit({
     // live for a tick — long enough for a second Enter to send it twice.
     if (payloadPresent && !queueEdit && hasClarifyRequest(sessionId)) {
       void skipClarifyRequest(sessionId)
+    }
+
+    // Same deal for a pending MCP setup card: the agent is blocked on
+    // mcp.setup.respond, so a typed message declines the card and rides on.
+    if (payloadPresent && !queueEdit && hasMcpSetupRequest(sessionId)) {
+      void skipMcpSetupRequest(sessionId)
     }
 
     if (queueEdit) {
